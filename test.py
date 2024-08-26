@@ -12,8 +12,7 @@ from utils.basicUtils import display, create_mask, cal_accuracy
 
 from sklearn.model_selection import train_test_split
 
-from utils.fgsm import fgsm_attack, pgd_attack, bim_attack, load_attacked_image
-
+from utils.fgsm import fgsm_attack, pgd_attack, bim_attack, load_attacked_image, add_random_occlusions
 
 if __name__ == '__main__':
     N_CLASSES = 3
@@ -71,9 +70,10 @@ if __name__ == '__main__':
 
     # Attack one image for visualization
     epsilon = 0.01 # Set the perturbation rate
-    attack_method = "PGD"
+    attack_method = "Occlusion"
     alpha = 0.001
     iteraton = 10
+    delta = 6
 
     if attack_method == "FGSM":
         print(f"Attack using {attack_method} method")
@@ -84,12 +84,15 @@ if __name__ == '__main__':
     elif attack_method == "PGD":
         print(f"Attack using {attack_method} method")
         perturbed_image = pgd_attack(model, criterion, image1, mask1, epsilon=epsilon)  # PGD Attack
+    elif attack_method == "Occlusion":
+        print(f"Attack using {attack_method} method")
+        perturbed_image = add_random_occlusions(image1, delta=delta)  # Occlusion attack
 
     # Create the mask for the perturbed image
     perturbed_pred_mask = create_mask(model(perturbed_image)).type(torch.uint8)
 
     # Load the adv dataset
-    perturbed_dataset = load_attacked_image(model, val_loader, criterion, device, method=attack_method, epsilon=epsilon, alpha=alpha, iteration=iteraton)
+    perturbed_dataset = load_attacked_image(model, val_loader, criterion, device, method=attack_method, epsilon=epsilon, alpha=alpha, iteration=iteraton, delta=delta)
     adv_dataloader = torch.utils.data.DataLoader(perturbed_dataset, batch_size=BATCH_SIZE, shuffle=False)
     cal_accuracy(model, adv_dataloader, criterion, device, "Attack")
 
