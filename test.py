@@ -12,7 +12,7 @@ from utils.basicUtils import display, create_mask, cal_accuracy
 
 from sklearn.model_selection import train_test_split
 
-from utils.fgsm import fgsm_attack, pgd_attack, bim_attack, load_attacked_image, add_random_occlusions
+from utils.fgsm import fgsm_attack, pgd_attack, bim_attack, load_attacked_image, occlusions_attack, rotation_attack
 
 if __name__ == '__main__':
     N_CLASSES = 3
@@ -86,7 +86,10 @@ if __name__ == '__main__':
         perturbed_image = pgd_attack(model, criterion, image1, mask1, epsilon=epsilon)  # PGD Attack
     elif attack_method == "Occlusion":
         print(f"Attack using {attack_method} method")
-        perturbed_image = add_random_occlusions(image1, delta=delta)  # Occlusion attack
+        perturbed_image = occlusions_attack(image1, delta=delta)  # Occlusion attack
+    elif attack_method == "Rotation":
+        print(f"Attack using {attack_method} method")
+        perturbed_image, perturbed_mask = rotation_attack(image1, mask1)
 
     # Create the mask for the perturbed image
     perturbed_pred_mask = create_mask(model(perturbed_image)).type(torch.uint8)
@@ -111,4 +114,8 @@ if __name__ == '__main__':
     cal_accuracy(model_defense, adv_dataloader, criterion, device, "Defense")
 
     # Visualization
-    display([image1.squeeze(0), mask1/255, pre_mask1/255, perturbed_pred_mask/255, perturbed_pred_mask_defense/255])
+    if attack_method == "Rotation":
+        display([perturbed_image.squeeze(0), perturbed_mask / 255, pre_mask1 / 255, perturbed_pred_mask / 255,
+                 perturbed_pred_mask_defense / 255])
+    else:
+        display([image1.squeeze(0), mask1/255, pre_mask1/255, perturbed_pred_mask/255, perturbed_pred_mask_defense/255])

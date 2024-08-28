@@ -3,6 +3,7 @@ import random
 import torch
 import torchattacks
 from torch.utils.data import TensorDataset
+import torchvision.transforms.functional as TF
 
 
 def fgsm_attack(model, loss_fn, images, labels, epsilon=0.01):
@@ -93,7 +94,7 @@ def bim_attack(model, loss_fn, x, y, epsilon=0.01, alpha=0.001, num_iterations=1
     return x_adv
 
 
-def add_random_occlusions(images, delta=1):
+def occlusions_attack(images, delta=1):
     batch_size, channels, height, width = images.shape
 
     def add_white_circle(image, delta):
@@ -126,7 +127,7 @@ def add_random_occlusions(images, delta=1):
             x = random.randint(0, width - 1)
             y = random.randint(0, height - 1)
             # 在所有通道上设置黑点，值设为0（黑色）
-            image[:, y, x] = 0.0
+            image[:, y, x] = torch.rand(channels) * 0.2
 
         return image
 
@@ -135,14 +136,34 @@ def add_random_occlusions(images, delta=1):
     for i in range(batch_size):
         img = images[i]
         # 随机选择添加白色圆形遮挡或黑色点遮挡
-        # if random.choice([True, False]):
-        #     img = add_white_circle(img, delta)
-        # else:
-        #     img = add_black_dots(img, delta)
-        img = add_white_circle(img, delta)
+        if random.choice([True, False]):
+             img = add_white_circle(img, delta)
+        else:
+             img = add_black_dots(img, delta)
         processed_images[i] = img
 
     return processed_images
+
+
+def rotation_attack(images, masks):
+
+    batch_size = images.size(0)
+    rotated_images = []
+    rotated_masks = []
+
+    for i in range(batch_size):
+        if torch.rand(1) < 0.5:
+            angle = torch.FloatTensor(1).uniform_(-30, -5).item()  # 选择 (-30, -10) 区间的角度
+        else:
+            angle = torch.FloatTensor(1).uniform_(5, 30).item()  # 选择 (10, 30) 区间的角度
+
+        rotated_image = TF.rotate(images[i], angle, expand=False)
+        rotated_mask = TF.rotate(masks[i].unsqueeze(0), angle, expand=False)  # 添加一个channel维度进行旋转
+
+        rotated_images.append(rotated_image)
+        rotated_masks.append(rotated_mask.squeeze(0))  # 移除添加的channel维度
+
+    return torch.stack(rotated_images), torch.stack(rotated_masks)
 
 
 def load_attacked_image(model, dataloader, loss_fn, device, method="FGSM", epsilon=0.01, alpha=0.001, iteration=10, delta=1):
@@ -165,10 +186,16 @@ def load_attacked_image(model, dataloader, loss_fn, device, method="FGSM", epsil
             # adv_images = pgd_attack(model, images, labels, epsilon=epsilon)
             adv_images = pgd_attack(model, loss_fn, images, labels, epsilon=epsilon, alpha=alpha, num_iterations=iteration)
         elif method == "Occlusion":
-            adv_images = add_random_occlusions(images, delta=delta)
+            adv_images = occlusions_attack(images, delta=delta)
+        elif method == "Rotation":
+            adv_images, adv_labels = rotation_attack(images, labels)
         # Append the attacked images and labels to the lists
         all_adv_images.append(adv_images)
-        all_labels.append(labels)
+
+        if method == "Rotation":
+            all_labels.append(adv_labels)
+        else:
+            all_labels.append(labels)
 
     # Concatenate all tensors in the lists along the first dimension (batch dimension)
     all_adv_images_tensor = torch.cat(all_adv_images, dim=0)
