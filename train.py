@@ -4,6 +4,7 @@ import random
 
 import torch
 import torchvision.transforms as transforms
+from matplotlib import pyplot as plt
 
 from CustomDataset import CustomDataset
 from CustomLoss import CustomSparseCategoricalCrossentropy
@@ -58,6 +59,10 @@ model.train()
 criterion = CustomSparseCategoricalCrossentropy()
 optimizer = torch.optim.RMSprop(model.parameters(), lr=0.001)
 print("Using device:", device)
+
+# Save loss and accuracy for each epoch
+train_loss_history = []
+train_acc_history = []
 for epoch in range(num_epochs):
     print(f'Epoch {epoch + 1}/{num_epochs}')
     print('-' * 10)
@@ -82,19 +87,36 @@ for epoch in range(num_epochs):
 
         running_loss += loss.item() * inputs.size(0)
         _, preds = torch.max(outputs, 1)
-        # print(preds.unique(), labels.squeeze(1).data.unique())
         running_corrects += torch.sum(preds == labels.squeeze(1).data).double()
-        # print(preds.shape, labels.shape,"\\")
-        # print("num", torch.sum(preds == labels.squeeze(1).data))
 
     epoch_loss = running_loss / len(train_loader.dataset)
-    epoch_acc = running_corrects / (len(train_loader.dataset) * 244 * 244)
-
+    epoch_acc = running_corrects / (len(train_loader.dataset) * 224 * 224)
     print(f'Loss: {epoch_loss:.4f} Acc: {epoch_acc * 100:.4f}%')
+
+    train_loss_history.append(epoch_loss)
+    train_acc_history.append(epoch_acc.cpu().item())
 
 torch.save(model.state_dict(), 'result/model.pt')
 
-# model.eval()
-# image1, mask1 = val_dataset[0]
-# image1, mask1 = image1.unsqueeze(0).to(device), mask1.to(device)
-# test = model(image1)
+# 绘制损失值和准确率的图像
+epochs = range(1, num_epochs + 1)
+
+plt.figure(figsize=(12, 5))
+
+# 绘制损失值曲线
+plt.subplot(1, 2, 1)
+plt.plot(epochs, train_loss_history, '-')
+plt.title('Training Loss')
+plt.xlabel('Epoch')
+plt.ylabel('Loss')
+
+# 绘制准确率曲线
+plt.subplot(1, 2, 2)
+plt.plot(epochs, train_acc_history, '-')
+plt.title('Training Accuracy')
+plt.xlabel('Epoch')
+plt.ylabel('Accuracy')
+
+# 显示图像
+plt.tight_layout()
+plt.show()

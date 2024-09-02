@@ -70,9 +70,9 @@ if __name__ == '__main__':
 
     # Attack one image for visualization
     epsilon = 0.01 # Set the perturbation rate
-    attack_method = "Occlusion"
+    attack_method = "PGD"
     alpha = 0.001
-    iteraton = 10
+    iteraton = 20
     delta = 6
 
     if attack_method == "FGSM":
@@ -97,7 +97,7 @@ if __name__ == '__main__':
     # Load the adv dataset
     perturbed_dataset = load_attacked_image(model, val_loader, criterion, device, method=attack_method, epsilon=epsilon, alpha=alpha, iteration=iteraton, delta=delta)
     adv_dataloader = torch.utils.data.DataLoader(perturbed_dataset, batch_size=BATCH_SIZE, shuffle=False)
-    cal_accuracy(model, adv_dataloader, criterion, device, "Attack")
+    cal_accuracy(model, adv_dataloader, criterion, device, "Attack", val_loader)
 
 
 
@@ -111,11 +111,11 @@ if __name__ == '__main__':
     perturbed_pred_mask_defense = create_mask(model_defense(perturbed_image)).type(torch.uint8)
 
     # # Calculate the acc
-    cal_accuracy(model_defense, adv_dataloader, criterion, device, "Defense")
+    cal_accuracy(model_defense, adv_dataloader, criterion, device, "Defense", val_loader)
 
     # Visualization
     if attack_method == "Rotation":
         display([perturbed_image.squeeze(0), perturbed_mask / 255, pre_mask1 / 255, perturbed_pred_mask / 255,
                  perturbed_pred_mask_defense / 255])
     else:
-        display([image1.squeeze(0), mask1/255, pre_mask1/255, perturbed_pred_mask/255, perturbed_pred_mask_defense/255])
+        display([perturbed_image.squeeze(0), mask1/255, pre_mask1/255, perturbed_pred_mask/255, perturbed_pred_mask_defense/255])

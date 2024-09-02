@@ -86,12 +86,40 @@ def create_mask(pred_mask):
     return pred_mask[0]  # Assuming batch size of 1, return the first element
 
 
-def cal_accuracy(test_model, test_loader, criterion, device, model_type):
+# def cal_accuracy(test_model, test_loader, criterion, device, model_type, std_model=None):
+#     test_model.eval()
+#     running_loss = 0.0
+#     running_corrects = 0
+#
+#     with torch.no_grad():
+#         for inputs, labels in test_loader:
+#             inputs = inputs.to(device)
+#             labels = labels.to(device)
+#
+#             outputs = test_model(inputs)
+#             loss = criterion(outputs, labels)
+#
+#             running_loss += loss.item() * inputs.size(0)
+#             _, preds = torch.max(outputs, 1)
+#             running_corrects += torch.sum(preds == labels.squeeze(1).data).double()
+#
+#     epoch_loss = running_loss / len(test_loader.dataset)
+#     epoch_acc = running_corrects / (len(test_loader.dataset) * 244 * 244)
+#
+#     print(f'{model_type} model: Loss: {epoch_loss:.4f} Acc: {epoch_acc * 100:.4f}%')
+
+def cal_accuracy(test_model, test_loader, criterion, device, model_type, std_test_loader=None):
     test_model.eval()
     running_loss = 0.0
     running_corrects = 0
 
+    # 初始化ASR相关的变量
+    asr_count = 0
+    total_pixels = 0
+
     with torch.no_grad():
+        std_iter = iter(std_test_loader) if std_test_loader else None
+
         for inputs, labels in test_loader:
             inputs = inputs.to(device)
             labels = labels.to(device)
@@ -103,7 +131,25 @@ def cal_accuracy(test_model, test_loader, criterion, device, model_type):
             _, preds = torch.max(outputs, 1)
             running_corrects += torch.sum(preds == labels.squeeze(1).data).double()
 
-    epoch_loss = running_loss / len(test_loader.dataset)
-    epoch_acc = running_corrects / (len(test_loader.dataset) * 244 * 244)
+            # 计算ASR
+            if std_iter:
+                std_inputs, std_labels = next(std_iter)
+                std_inputs = std_inputs.to(device)
+                std_labels = std_labels.to(device)
 
-    print(f'{model_type} model: Loss: {epoch_loss:.4f} Acc: {epoch_acc * 100:.4f}%')
+                std_outputs = test_model(std_inputs)
+                _, std_preds = torch.max(std_outputs, 1)
+
+                # 对于每个像素，计算ASR
+                asr_count += torch.sum((preds != labels.squeeze(1)) & (std_preds == std_labels.squeeze(1))).item()
+                total_pixels += torch.numel(preds)
+
+    epoch_loss = running_loss / len(test_loader.dataset)
+    epoch_acc = running_corrects / (len(test_loader.dataset) * 224 * 244)
+
+    # 计算ASR
+    asr = asr_count / (len(test_loader.dataset) * 224 * 244) if total_pixels > 0 else 0
+
+    print(f'{model_type} model: Loss: {epoch_loss:.4f} Acc: {epoch_acc * 100:.4f}% ASR: {asr * 100:.4f}%')
+
+    return epoch_loss, epoch_acc, asr

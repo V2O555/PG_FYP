@@ -7,7 +7,6 @@ import torchvision.transforms.functional as TF
 
 
 def fgsm_attack(model, loss_fn, images, labels, epsilon=0.01):
-    print(images.shape)
     # model.eval()
     with torch.enable_grad():
         images.requires_grad = True
@@ -121,12 +120,11 @@ def occlusions_attack(images, delta=1):
 
     def add_black_dots(image, delta):
         # 计算黑色点的数量，基于delta调整
-        num_dots = int(100 * delta)  # delta 越大，黑点越多
+        num_dots = int(30 * delta)  # delta 越大，黑点越多
         for _ in range(num_dots):
             # 随机确定点的位置
             x = random.randint(0, width - 1)
             y = random.randint(0, height - 1)
-            # 在所有通道上设置黑点，值设为0（黑色）
             image[:, y, x] = torch.rand(channels) * 0.2
 
         return image
@@ -134,12 +132,22 @@ def occlusions_attack(images, delta=1):
     # 遍历所有图片，并添加随机遮挡
     processed_images = torch.empty_like(images)
     for i in range(batch_size):
-        img = images[i]
         # 随机选择添加白色圆形遮挡或黑色点遮挡
-        if random.choice([True, False]):
-             img = add_white_circle(img, delta)
-        else:
-             img = add_black_dots(img, delta)
+        # if random.choice([True, False]):
+        #     img = images[i]
+        #     img = add_white_circle(img, delta)
+        # else:
+        #     blurred_image = TF.gaussian_blur(images, kernel_size=15, sigma=1.5)
+        #     img = blurred_image[i]
+        #     img = add_black_dots(img, delta)
+
+        # img = images[i]
+        # img = add_white_circle(img, delta)
+
+        blurred_image = TF.gaussian_blur(images, kernel_size=15, sigma=1.5)
+        img = blurred_image[i]
+        img = add_black_dots(img, delta)
+
         processed_images[i] = img
 
     return processed_images

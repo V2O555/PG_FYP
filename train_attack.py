@@ -88,7 +88,7 @@ for epoch in range(num_epochs):
         running_corrects += torch.sum(preds == labels.squeeze(1).data)
 
     epoch_loss = running_loss / len(train_loader.dataset)
-    epoch_acc = running_corrects.double() / (len(train_loader.dataset) * 244 * 244)
+    epoch_acc = running_corrects.double() / (len(train_loader.dataset) * 224 * 224)
 
     print(f'Loss: {epoch_loss:.4f} Acc: {epoch_acc:.4f}')
     train_loss_history.append(epoch_loss)
