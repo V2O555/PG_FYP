@@ -1,3 +1,14 @@
 # Ignore all files in the 'data' and 'result' folders
-data/*
+data/labels/*
+data/convert.ipynb
+data/test_image/*
+data/attacked_images/*
+data/images/*
+data/masks/*
+
 result/*
+
+!data/images
+!data/masks
+!data/attacked_images
+!result/
