@@ -5,10 +5,12 @@ data/test_image/*
 data/attacked_images/*
 data/images/*
 data/masks/*
+.idea/*
+_pycache_/*
 
 result/*
 
-!data/images
-!data/masks
-!data/attacked_images
-!result/
+!data/images/.gitkeep
+!data/masks/.gitkeep
+!data/attacked_images/.gitkeep
+!result/.gitkeep
