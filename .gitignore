@@ -5,10 +5,6 @@ data/test_image/*
 data/attacked_images/*
 data/images/*
 data/masks/*
-
-result/*
-
-!data/images
-!data/masks
-!data/attacked_images
-!result/
+.idea/*
+_pycache_/*
+result/*.pt
