@@ -11,7 +11,7 @@ from utils.fgsm import fgsm_attack
 if __name__ == '__main__':
     # Define some hyperparameters
     N_CLASSES = 3
-    epsilon = 0.01
+    epsilon = 0.05
     IMG_SIZE = 224
 
     # Define the folder path

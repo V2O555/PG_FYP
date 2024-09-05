@@ -72,8 +72,8 @@ if __name__ == '__main__':
     epsilon = 0.01 # Set the perturbation rate
     attack_method = "PGD"
     alpha = 0.001
-    iteraton = 20
-    delta = 6
+    iteraton = 10
+    delta = 2
 
     if attack_method == "FGSM":
         print(f"Attack using {attack_method} method")
@@ -95,7 +95,7 @@ if __name__ == '__main__':
     perturbed_pred_mask = create_mask(model(perturbed_image)).type(torch.uint8)
 
     # Load the adv dataset
-    perturbed_dataset = load_attacked_image(model, val_loader, criterion, device, method=attack_method, epsilon=epsilon, alpha=alpha, iteration=iteraton, delta=delta)
+    perturbed_dataset, _, _ = load_attacked_image(val_loader, device, model=model, loss_fn=criterion, method=attack_method, epsilon=epsilon, alpha=alpha, iteration=iteraton, delta=delta)
     adv_dataloader = torch.utils.data.DataLoader(perturbed_dataset, batch_size=BATCH_SIZE, shuffle=False)
     cal_accuracy(model, adv_dataloader, criterion, device, "Attack", val_loader)
 
@@ -103,7 +103,7 @@ if __name__ == '__main__':
 
     # Load the adversarial defense model
     model_defense = unet_model(N_CLASSES)
-    model_defense.load_state_dict(torch.load('result/model_attacked.pt'))
+    model_defense.load_state_dict(torch.load('result/model_attacked_optimized.pt'))
     model_defense.to(device)
     model_defense.eval()
 
@@ -112,7 +112,7 @@ if __name__ == '__main__':
 
     # # Calculate the acc
     cal_accuracy(model_defense, adv_dataloader, criterion, device, "Defense", val_loader)
-
+    # cal_accuracy(model_defense, val_loader, criterion, device, "Defense", val_loader)
     # Visualization
     if attack_method == "Rotation":
         display([perturbed_image.squeeze(0), perturbed_mask / 255, pre_mask1 / 255, perturbed_pred_mask / 255,

@@ -133,20 +133,20 @@ def occlusions_attack(images, delta=1):
     processed_images = torch.empty_like(images)
     for i in range(batch_size):
         # 随机选择添加白色圆形遮挡或黑色点遮挡
-        # if random.choice([True, False]):
-        #     img = images[i]
-        #     img = add_white_circle(img, delta)
-        # else:
-        #     blurred_image = TF.gaussian_blur(images, kernel_size=15, sigma=1.5)
-        #     img = blurred_image[i]
-        #     img = add_black_dots(img, delta)
+        if random.choice([True, False]):
+            img = images[i]
+            img = add_white_circle(img, delta)
+        else:
+            blurred_image = TF.gaussian_blur(images, kernel_size=15, sigma=1.5)
+            img = blurred_image[i]
+            img = add_black_dots(img, delta)
 
         # img = images[i]
         # img = add_white_circle(img, delta)
 
-        blurred_image = TF.gaussian_blur(images, kernel_size=15, sigma=1.5)
-        img = blurred_image[i]
-        img = add_black_dots(img, delta)
+        # blurred_image = TF.gaussian_blur(images, kernel_size=15, sigma=1.5)
+        # img = blurred_image[i]
+        # img = add_black_dots(img, delta)
 
         processed_images[i] = img
 
@@ -174,7 +174,7 @@ def rotation_attack(images, masks):
     return torch.stack(rotated_images), torch.stack(rotated_masks)
 
 
-def load_attacked_image(model, dataloader, loss_fn, device, method="FGSM", epsilon=0.01, alpha=0.001, iteration=10, delta=1):
+def load_attacked_image(dataloader, device, model=None, loss_fn=None, method="FGSM", epsilon=0.01, alpha=0.001, iteration=10, delta=1):
     # Create empty lists to hold the attacked images and corresponding labels
     all_adv_images = []
     all_labels = []
@@ -209,8 +209,8 @@ def load_attacked_image(model, dataloader, loss_fn, device, method="FGSM", epsil
     all_adv_images_tensor = torch.cat(all_adv_images, dim=0)
     all_labels_tensor = torch.cat(all_labels, dim=0)
 
-    # Create a new DataLoader from the attacked images and labels
+    # Create a new dataset from the attacked images and labels
     adv_dataset = TensorDataset(all_adv_images_tensor, all_labels_tensor)
 
     # Print the shape of the resulting tensor for debugging
-    return adv_dataset
+    return adv_dataset, all_adv_images_tensor, all_labels_tensor
