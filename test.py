@@ -70,9 +70,9 @@ if __name__ == '__main__':
 
     # Attack one image for visualization
     epsilon = 0.01 # Set the perturbation rate
-    attack_method = "PGD"
+    attack_method = "FGSM"
     alpha = 0.001
-    iteraton = 10
+    iteration = 10
     delta = 2
 
     if attack_method == "FGSM":
@@ -95,7 +95,7 @@ if __name__ == '__main__':
     perturbed_pred_mask = create_mask(model(perturbed_image)).type(torch.uint8)
 
     # Load the adv dataset
-    perturbed_dataset, _, _ = load_attacked_image(val_loader, device, model=model, loss_fn=criterion, method=attack_method, epsilon=epsilon, alpha=alpha, iteration=iteraton, delta=delta)
+    perturbed_dataset, _, _ = load_attacked_image(val_loader, device, model=model, loss_fn=criterion, method=attack_method, epsilon=epsilon, alpha=alpha, iteration=iteration, delta=delta)
     adv_dataloader = torch.utils.data.DataLoader(perturbed_dataset, batch_size=BATCH_SIZE, shuffle=False)
     cal_accuracy(model, adv_dataloader, criterion, device, "Attack", val_loader)
 
