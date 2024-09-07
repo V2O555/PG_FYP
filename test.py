@@ -70,7 +70,7 @@ if __name__ == '__main__':
 
     # Attack one image for visualization
     epsilon = 0.01 # Set the perturbation rate
-    attack_method = "FGSM"
+    attack_method = "BIM"
     alpha = 0.001
     iteration = 10
     delta = 2
