@@ -1,3 +1,10 @@
+# Environment Setup
+This project is built using the following environment configurations:
+- **Python Environment**: `Python==3.9.0`
+- **Additional Libraries**: The project depends on several Python libraries:
+  ```bash
+  pip install torch==2.3.1+cu118 torchvision==0.18.1+cu118 matplotlib==3.9.1
+
 # Dataset
 Download the MaSTr1325 dataset from https://box.vicos.si/borja/viamaro/index.html
 
