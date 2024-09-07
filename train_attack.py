@@ -14,7 +14,7 @@ from ShorelineNetModel import unet_model
 from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader, Subset, ConcatDataset, TensorDataset
 
-from utils.fgsm import load_attacked_image
+from utils.attack_methods import load_attacked_image
 
 
 def split_dataset(dataset, num_splits=3):

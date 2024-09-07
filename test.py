@@ -12,7 +12,7 @@ from utils.basicUtils import display, create_mask, cal_accuracy
 
 from sklearn.model_selection import train_test_split
 
-from utils.fgsm import fgsm_attack, pgd_attack, bim_attack, load_attacked_image, occlusions_attack, rotation_attack
+from utils.attack_methods import fgsm_attack, pgd_attack, bim_attack, load_attacked_image, occlusions_attack, rotation_attack
 
 if __name__ == '__main__':
     N_CLASSES = 3

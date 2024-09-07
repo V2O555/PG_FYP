@@ -6,7 +6,7 @@ import torchvision.transforms as transforms
 from CustomLoss import CustomSparseCategoricalCrossentropy
 from ShorelineNetModel import unet_model
 from utils.basicUtils import parse_image
-from utils.fgsm import fgsm_attack
+from utils.attack_methods import fgsm_attack
 
 if __name__ == '__main__':
     # Define some hyperparameters
